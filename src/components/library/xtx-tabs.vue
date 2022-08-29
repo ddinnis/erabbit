@@ -1,0 +1,78 @@
+<script>
+import { useVModel } from '@vueuse/core'
+import { provide } from 'vue'
+export default {
+  name: 'XtxTabs',
+  props: {
+    modelValue: {
+      type: String,
+      default: ''
+    }
+  },
+  setup(props, { emit }) {
+    const activeName = useVModel(props, 'modelValue', emit)
+    provide('activeName')
+
+    const tabClick = (name, index) => {
+      activeName.value = name
+      emit('tab-click', { name, index })
+    }
+    return { activeName, tabClick }
+  },
+  render() {
+    const panels = this.$slots.default()
+    const dynamicPanels = []
+    panels.forEach((item) => {
+      if (item.type.name === 'XtxTabsPanel') {
+        dynamicPanels.push(item)
+      } else {
+        item.children.forEach((item) => {
+          dynamicPanels.push(item)
+        })
+      }
+    })
+
+    const nav = (
+      <nav>
+        {dynamicPanels.map((item, i) => {
+          return (
+            <a
+              onClick={() => {
+                this.tabClick(item.props.name, i)
+              }}
+              href="javascript:;"
+              class={{ active: item.props.name === this.activeName }}
+            >
+              {item.props.label}
+            </a>
+          )
+        })}
+      </nav>
+    )
+    return <div class="xtx-tabs">{[dynamicPanels, nav]}</div>
+  }
+}
+</script>
+<style lang="less">
+.xtx-tabs {
+  background: #fff;
+  > nav {
+    height: 60px;
+    line-height: 60px;
+    display: flex;
+    border-bottom: 1px solid #f5f5f5;
+    > a {
+      width: 110px;
+      border-right: 1px solid #f5f5f5;
+      text-align: center;
+      font-size: 16px;
+      &.active {
+        border-top: 2px solid @themeColor;
+        height: 60px;
+        background: #fff;
+        line-height: 56px;
+      }
+    }
+  }
+}
+</style>
